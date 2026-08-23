@@ -147,67 +147,72 @@ Public Class MainUI
                 Dim SaveBufferHandled As Boolean = False
                 Dim SaveBufferInvalid As Boolean = False
 
-                If RadD4.Checked Then
-                    If SaveBuffer(0) = &H3C Then
-                        If ChkPolicy.Checked Then
-                            D4KeyStore = New Byte(3) {}
-                            Dim _loc_11 As Byte() = HW_D4EncryptXML(TxtMain.Text)
-                            HW_D4Reset()
-                            Dim _loc_12(_loc_11.Length + 327) As Byte
-                            _loc_12(0) = &H7
-                            _loc_12(1) = &H12
-                            _loc_12(2) = &H21
-                            _loc_12(3) = &H20
-
-                            _loc_12(52) = &H48
-                            _loc_12(53) = &H1
-
-                            Dim _loc_13 As Byte() = BitConverter.GetBytes(Convert.ToInt64(_loc_11.Length))
-                            _loc_12(56) = _loc_13(0)
-                            _loc_12(57) = _loc_13(1)
-                            _loc_12(58) = _loc_13(2)
-                            _loc_12(59) = _loc_13(3)
-
-                            _loc_12(96) = D4KeyStore(1)
-                            _loc_12(97) = D4KeyStore(0)
-                            _loc_12(100) = D4KeyStore(3)
-                            _loc_12(101) = D4KeyStore(2)
-
-                            _loc_12(60) = &H1
-                            Dim _loc_4(39) As Byte
-                            Array.Copy(_loc_12, 64, _loc_4, 0, _loc_4.Length)
-                            Dim _loc_5 As Byte() = BitConverter.GetBytes(CRC32(_loc_4))
-                            Dim _loc_6 As Byte() = BitConverter.GetBytes(CRC32(_loc_11))
-
-                            _loc_12(320) = _loc_6(0)
-                            _loc_12(321) = _loc_6(1)
-                            _loc_12(322) = _loc_6(2)
-                            _loc_12(323) = _loc_6(3)
-
-                            _loc_12(324) = _loc_5(0)
-                            _loc_12(325) = _loc_5(1)
-                            _loc_12(326) = _loc_5(2)
-                            _loc_12(327) = _loc_5(3)
-
-                            Array.Copy(_loc_11, 0, _loc_12, 328, _loc_11.Length)
-
-                            My.Computer.FileSystem.WriteAllBytes(SFDBoardinfo.FileName, _loc_12, False)
-                            TxtMain.Text = "[ 提示 ] 文件已保存！" & vbCrLf & SFDBoardinfo.FileName
-                            Exit Sub
-                        Else
-                            SaveBuffer = HW_D4EncryptXML(TxtMain.Text)
-                        End If
-                        SaveBufferHandled = True
+                If ChkPolicy.Checked AndAlso SaveBuffer(0) = &H3C Then
+                    Dim _loc_11 As Byte() = New Byte() {}
+                    If RadD4.Checked Then
+                        D4KeyStore = New Byte(3) {}
+                        _loc_11 = HW_D4EncryptXML(TxtMain.Text)
+                        HW_D4Reset()
                     Else
-                        If BoardInfoVersion = 3 Then BoardInfoVersion = 5
-                        ChkPolicy.Checked = False
+                        _loc_11 = HW_D2EncryptXML(TxtMain.Text)
                     End If
+
+                    Dim _loc_12(_loc_11.Length + 327) As Byte
+                    _loc_12(0) = &H7
+                    _loc_12(1) = &H12
+                    _loc_12(2) = &H21
+                    _loc_12(3) = &H20
+
+                    _loc_12(52) = &H48
+                    _loc_12(53) = &H1
+
+                    Dim _loc_13 As Byte() = BitConverter.GetBytes(Convert.ToInt64(_loc_11.Length))
+                    _loc_12(56) = _loc_13(0)
+                    _loc_12(57) = _loc_13(1)
+                    _loc_12(58) = _loc_13(2)
+                    _loc_12(59) = _loc_13(3)
+
+                    _loc_12(96) = D4KeyStore(1)
+                    _loc_12(97) = D4KeyStore(0)
+                    _loc_12(100) = D4KeyStore(3)
+                    _loc_12(101) = D4KeyStore(2)
+
+                    _loc_12(60) = &H1
+                    Dim _loc_4(39) As Byte
+                    Array.Copy(_loc_12, 64, _loc_4, 0, _loc_4.Length)
+                    Dim _loc_5 As Byte() = BitConverter.GetBytes(CRC32(_loc_4))
+                    Dim _loc_6 As Byte() = BitConverter.GetBytes(CRC32(_loc_11))
+
+                    _loc_12(320) = _loc_6(0)
+                    _loc_12(321) = _loc_6(1)
+                    _loc_12(322) = _loc_6(2)
+                    _loc_12(323) = _loc_6(3)
+
+                    _loc_12(324) = _loc_5(0)
+                    _loc_12(325) = _loc_5(1)
+                    _loc_12(326) = _loc_5(2)
+                    _loc_12(327) = _loc_5(3)
+
+                    Array.Copy(_loc_11, 0, _loc_12, 328, _loc_11.Length)
+
+                    My.Computer.FileSystem.WriteAllBytes(SFDBoardinfo.FileName, _loc_12, False)
+                    TxtMain.Text = "[ 提示 ] 文件已保存！" & vbCrLf & SFDBoardinfo.FileName
+                    Exit Sub
                 Else
                     ChkPolicy.Checked = False
                 End If
 
-                If (BoardInfoVersion = 5 Or BoardInfoVersion = 6) And Not SaveBufferHandled Then
-                    If Not ((TxtMain.Text.StartsWith("$2") Or TxtMain.Text.StartsWith("$4")) And TxtMain.Text.EndsWith("$")) Then
+                If RadD4.Checked Then
+                    If SaveBuffer(0) = &H3C Then
+                        SaveBuffer = HW_D4EncryptXML(TxtMain.Text)
+                        SaveBufferHandled = True
+                    Else
+                        If BoardInfoVersion = 3 Then BoardInfoVersion = 5
+                    End If
+                End If
+
+                If (BoardInfoVersion = 5 OrElse BoardInfoVersion = 6) AndAlso Not SaveBufferHandled Then
+                    If Not ((TxtMain.Text.StartsWith("$2") OrElse TxtMain.Text.StartsWith("$4")) AndAlso TxtMain.Text.EndsWith("$")) Then
                         If ParseText() Then
                             SaveBuffer = Encoding.UTF8.GetBytes(TxtMain.Text)
                         Else
@@ -348,7 +353,7 @@ Public Class MainUI
         Next
         Dim _loc_6 As UInteger = &HFFFFFFFFUI
         For _loc_7 As Integer = 0 To param1.Length - 1
-            Dim _loc_8 As Byte = ((_loc_6) And &HFF) Xor param1(_loc_7)
+            Dim _loc_8 As Byte = (_loc_6 And &HFF) Xor param1(_loc_7)
             _loc_6 = (_loc_6 >> 8) Xor _loc_1(_loc_8)
         Next
         Return Not _loc_6
@@ -564,6 +569,20 @@ Public Class MainUI
             _loc_5 = _loc_5.Replace("&", "&amp;").Replace("""", "&quot;").Replace("'", "&apos;").Replace("<", "&lt;").Replace(">", "&gt;")
         End If
         Return _loc_5
+    End Function
+
+    Public Function HW_D2EncryptXML(param1 As String) As Byte()
+        Dim _loc_1 As Byte() = AesCrypt2(GZip(Encoding.UTF8.GetBytes(param1)), 0, HW_D2_Key)
+        Dim _loc_2 As Byte() = New Byte() {}
+        Dim PayloadCRC As Byte() = HW_CTREE_CRC32(_loc_1)
+        Dim D2EncryptKey As Byte() = Encoding.UTF8.GetBytes(HW_D2Encrypt(Encoding.UTF8.GetString(HW_D2_Key)))
+        _loc_2 = New Byte(_loc_1.Length + 12 + D2EncryptKey.Length - 1) {}
+        _loc_2(0) = &H2
+        Array.Copy(BitConverter.GetBytes(Convert.ToInt64(D2EncryptKey.Length)), 0, _loc_2, 8, 4)
+        Array.Copy(D2EncryptKey, 0, _loc_2, 12, D2EncryptKey.Length)
+        Array.Copy(_loc_1, 0, _loc_2, 12 + D2EncryptKey.Length, _loc_1.Length)
+        Array.Copy(PayloadCRC, 0, _loc_2, 4, PayloadCRC.Length)
+        Return _loc_2
     End Function
 
     Public Function HW_D2GetAESCBCKey() As Byte()
@@ -874,7 +893,9 @@ Public Class MainUI
                             If GetLittleEndian32(InputBuffer, 328) = 3 Then
                                 Dim _loc_3 As Integer = GetLittleEndian32(InputBuffer, 4)
                                 PolicyPassword = ""
-                                Policy.ShowDialog()
+                                If Not (GetLittleEndian32(InputBuffer, 96) = 1 AndAlso GetLittleEndian32(InputBuffer, 100) = 2) Then
+                                    Policy.ShowDialog()
+                                End If
                                 If PolicyPassword.Length = 0 Then
                                     D4KeyStore = New Byte(3) {}
                                 Else
